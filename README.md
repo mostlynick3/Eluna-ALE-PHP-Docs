@@ -35,7 +35,7 @@ A plug-and-play, self-hosted PHP documentation browser for [Eluna](https://githu
 ## Setup
 
 1. Clone the repo into your web server's document root
-2. Edit `config.php` and set `headers_dir` to your Eluna/ALE methods directory
+2. Edit `config.php` and set `headers_dir` to your Eluna/ALE methods directory. You can, for example, git clone mod-ale directly into this dir to have it work right out of the box.
 3. Done
 ```php
 return [
