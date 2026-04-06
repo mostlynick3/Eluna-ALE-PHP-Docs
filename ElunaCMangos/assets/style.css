@@ -69,9 +69,9 @@ html, body { height: 100%; overflow: hidden; font-family: 'Segoe UI', system-ui,
 #sidebar { grid-row: 2; display: grid; grid-template-columns: 1fr 1fr; background: var(--surface); border-right: 1px solid var(--border); min-height: 0; overflow: hidden; transition: background .2s, border-color .2s; }
 #class-panel { display: flex; flex-direction: column; min-height: 0; overflow: hidden; border-right: 1px solid var(--border); }
 #method-panel { display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
-#sidebar-header { padding: 14px 14px 8px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); flex-shrink: 0; }
+#sidebar-header { padding: 14px 14px 8px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); flex-shrink: 0; border-bottom: 1px solid var(--border); }
 #sidebar-tree { overflow-y: auto; flex: 1; min-height: 0; }
-.tree-node { display: flex; align-items: center; gap: 5px; padding-top: 3px; padding-bottom: 3px; padding-right: 8px; width: 100%; }
+.tree-node { display: flex; align-items: center; gap: 5px; padding-top: 4px; padding-bottom: 6px; padding-right: 8px; width: 100%; }
 .tree-arrow { color: var(--muted); font-size: 9px; flex-shrink: 0; width: 12px; line-height: 1; }
 .tree-indent { flex-shrink: 0; width: 12px; }
 .tree-link { flex: 1; font-size: 13px; color: var(--text); text-decoration: none; white-space: nowrap; transition: color .15s; }
