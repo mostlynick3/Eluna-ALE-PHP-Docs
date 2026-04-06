@@ -81,33 +81,52 @@
   const container   = document.getElementById('sidebar-tree');
   if (!container) return;
 
+  const collapsed = new Set();
+
   function renderNode(name, depth) {
-    const children  = treeData.children[name] || [];
-    const isActive  = name === selected;
-    const url       = '?class=' + encodeURIComponent(name);
-    const cls       = classesData[name];
-    const count     = cls ? cls.methodCount : '';
+    const children = treeData.children[name] || [];
+    const isActive = name === selected;
+    const url      = '?class=' + encodeURIComponent(name);
+    const cls      = classesData[name];
+    const count    = cls ? cls.methodCount : '';
+    const isCollapsed = collapsed.has(name);
 
     let html = `<div class="tree-node" style="padding-left:${depth * 14 + 14}px">`;
-    html += children.length
-      ? `<span class="tree-arrow">▸</span>`
-      : `<span class="tree-indent"></span>`;
+    if (children.length) {
+      html += `<span class="tree-arrow" data-node="${name}" style="cursor:pointer">${isCollapsed ? '▸' : '▾'}</span>`;
+    } else {
+      html += `<span class="tree-indent"></span>`;
+    }
     html += `<a class="tree-link${isActive ? ' active' : ''}" href="${url}">${name}</a>`;
     if (count !== '') html += `<span class="class-count">${count}</span>`;
     html += `</div>`;
 
-    for (const child of children) {
-      html += renderNode(child, depth + 1);
+    if (!isCollapsed) {
+      for (const child of children) {
+        html += renderNode(child, depth + 1);
+      }
     }
     return html;
   }
 
-  let html = '';
-  for (const root of treeData.roots) {
-    html += renderNode(root, 0);
+  function render() {
+    let html = '';
+    for (const root of treeData.roots) {
+      html += renderNode(root, 0);
+    }
+    container.innerHTML = html;
+
+    container.querySelectorAll('.tree-arrow[data-node]').forEach(el => {
+      el.addEventListener('click', () => {
+        const name = el.dataset.node;
+        if (collapsed.has(name)) collapsed.delete(name);
+        else collapsed.add(name);
+        render();
+      });
+    });
   }
 
-  container.innerHTML = html;
+  render();
 })();
 
 // ── HAMBURGER ────────────────────────────────────────────────────────────────
