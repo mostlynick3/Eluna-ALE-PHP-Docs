@@ -143,3 +143,19 @@
   updateTagDescMargins();
   window.addEventListener('resize', updateTagDescMargins);
 })();
+
+// ── SCROLL ACTIVE INTO VIEW ───────────────────────────────────────────────────
+(function () {
+  const activeTree   = document.querySelector('#sidebar-tree .tree-link.active');
+  const activeMethod = document.querySelector('#method-list .method-item.active');
+
+  if (activeTree) {
+    const panel = document.getElementById('sidebar-tree');
+    panel.scrollTop = activeTree.offsetTop - panel.clientHeight / 2;
+  }
+
+  if (activeMethod) {
+    const panel = document.getElementById('method-list');
+    panel.scrollTop = activeMethod.offsetTop - panel.clientHeight / 2;
+  }
+})();
