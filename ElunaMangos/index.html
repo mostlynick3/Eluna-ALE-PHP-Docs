@@ -107,6 +107,44 @@
     e.preventDefault();
     location.href = rewrite(href);
   }, true);
+
+  const index = [];
+  document.addEventListener('DOMContentLoaded', function() {
+    const srBox   = document.getElementById('search-results');
+    const srInput = document.getElementById('search');
+    if (!srInput || !srBox) return;
+    srInput.addEventListener('input', function() {
+      const q = srInput.value.trim().toLowerCase();
+      if (!q) { srBox.classList.remove('open'); srBox.innerHTML = ''; return; }
+      const hits = index.filter(x =>
+        x.name.toLowerCase().includes(q) ||
+        (x.desc  && x.desc.toLowerCase().includes(q)) ||
+        (x.class && x.class.toLowerCase().includes(q))
+      );
+      if (!hits.length) { srBox.classList.remove('open'); srBox.innerHTML = ''; return; }
+      srBox.innerHTML = hits.map(h => {
+        const url = h.type === 'class'
+          ? base + '/' + encodeURIComponent(h.name) + '/'
+          : base + '/' + encodeURIComponent(h.class) + '/' + encodeURIComponent(h.name) + '/';
+        const sub = h.type === 'method' ? '<span class="sr-class">' + h.class + '.</span>' : '';
+        return '<div class="sr-item" onclick="location.href=\'' + url + '\'">'
+          + '<span class="sr-badge ' + h.type + '">' + h.type + '</span>'
+          + sub + '<span class="sr-name">' + h.name + '</span>'
+          + '<span class="sr-desc">' + (h.desc || '') + '</span>'
+          + '</div>';
+      }).join('');
+      srBox.classList.add('open');
+    });
+    document.addEventListener('click', function(e) {
+      if (!srInput.contains(e.target) && !srBox.contains(e.target)) {
+        srBox.classList.remove('open');
+        srBox.innerHTML = '';
+      }
+    });
+    srInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') { srBox.classList.remove('open'); srBox.innerHTML = ''; srInput.blur(); }
+    });
+  });
 })();
 </script>
 <script src="/Eluna-ALE-PHP-Docs/ElunaMangos/assets/app.js"></script>
