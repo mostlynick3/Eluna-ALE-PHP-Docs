@@ -140,7 +140,7 @@ body.light .synopsis-code { background: #ebebf3; }
 .synopsis-code code { font-family: 'Consolas', 'Fira Code', monospace; font-size: 13px; color: var(--yellow); }
 
 /* ── ENUM TABLES ── */
-.pre-block { margin: 12px 0; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+.pre-block { margin: 12px 0; border: 1px solid var(--border); border-radius: var(--radius); overflow-x: auto; }
 .pre-block-header { padding: 7px 14px; background: #1a1a2e; font-family: monospace; font-size: 12px; color: var(--purple3); font-weight: 700; border-bottom: 1px solid var(--border); }
 body.light .pre-block-header { background: #ede0ff; }
 .enum-table { width: 100%; border-collapse: collapse; font-size: 12px; }
