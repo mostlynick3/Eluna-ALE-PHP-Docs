@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Eluna / ALE API</title>
+  <style>
+    :root { --bg: #0f0f14; --surface: #16161f; --border: #2a2a3d; --purple: #9d6fdb; --purple2: #7c4fc4; --purple3: #c9a0ff; --text: #d4d4e8; --muted: #6e6e96; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+    .container { text-align: center; padding: 40px 20px; }
+    h1 { font-size: 28px; font-weight: 700; color: var(--purple3); margin-bottom: 10px; }
+    .sub { color: var(--muted); font-size: 15px; margin-bottom: 36px; }
+    .branches { display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; max-width: 700px; }
+    .branch-card { display: inline-flex; align-items: center; gap: 10px; padding: 14px 24px; border-radius: 10px; background: var(--surface); border: 1px solid var(--border); color: var(--purple3); font-size: 15px; font-weight: 600; text-decoration: none; transition: background .15s, border-color .15s, color .15s; }
+    .branch-card:hover { background: var(--purple2); border-color: var(--purple); color: #fff; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <svg width="64" height="64" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin: 0 auto 20px; display:block">
+      <circle cx="18" cy="18" r="18" fill="#6b21d6"/>
+      <text x="18" y="13" text-anchor="middle" font-family="'Segoe UI',sans-serif" font-weight="700" font-size="6.5" fill="#e9d5ff" letter-spacing="0.3">LUA</text>
+      <text x="18" y="23" text-anchor="middle" font-family="'Consolas',monospace" font-weight="700" font-size="7.5" fill="#f3e8ff" letter-spacing="0.5">API</text>
+      <path d="M8 27 Q18 31 28 27" stroke="#c4b5fd" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+    </svg>
+    <h1>Eluna / ALE API</h1>
+    <p class="sub">Which API would you like to browse?</p>
+    <div class="branches">
+            <a class="branch-card" href="/Eluna-ALE-PHP-Docs/mod-ale/">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="3" x2="6" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/></svg>
+        mod-ale
+      </a>      <a class="branch-card" href="/Eluna-ALE-PHP-Docs/ElunaTrinityCore/">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="3" x2="6" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/></svg>
+        ElunaTrinityCore
+      </a>      <a class="branch-card" href="/Eluna-ALE-PHP-Docs/ElunaAzerothCore/">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="3" x2="6" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/></svg>
+        ElunaAzerothCore
+      </a>      <a class="branch-card" href="/Eluna-ALE-PHP-Docs/ElunaCMangos/">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="3" x2="6" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/></svg>
+        ElunaCMangos
+      </a>      <a class="branch-card" href="/Eluna-ALE-PHP-Docs/ElunaMangos/">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="3" x2="6" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/></svg>
+        ElunaMangos
+      </a>      <a class="branch-card" href="/Eluna-ALE-PHP-Docs/ElunaVMangos/">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="3" x2="6" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/></svg>
+        ElunaVMangos
+      </a>
+    </div>
+  </div>
+</body>
+</html>
