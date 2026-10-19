@@ -27,7 +27,7 @@
       return `<div class="sr-item" onclick="location.href='${url}'">
         <span class="sr-badge ${h.type}">${h.type}</span>
         ${sub}<span class="sr-name">${esc(h.name)}</span>
-        <span class="sr-desc">${esc(h.desc || '')}</span>
+        <span class="sr-desc">${fmtSearch(h.desc || '')}</span>
       </div>`;
     }).join('');
     srBox.classList.add('open');
@@ -49,6 +49,17 @@
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;');
+  }
+
+  function fmtSearch(s) {
+    let h = esc(s);
+    h = h.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    h = h.replace(/`([^`]+)`/g, '<code class="inline-code">$1</code>');
+    h = h.replace(/\[(\w+):(\w+)\]/g, (m, c, mn) =>
+      `<a class="doc-link" href="?class=${encodeURIComponent(c)}&method=${encodeURIComponent(mn)}">${c}:${mn}</a>`);
+    h = h.replace(/\[(\w+)\]/g, (m, c) =>
+      `<a class="doc-link" href="?class=${encodeURIComponent(c)}">${c}</a>`);
+    return h;
   }
 })();
 
@@ -129,22 +140,42 @@
   render();
 })();
 
-// ── HAMBURGER ────────────────────────────────────────────────────────────────
+// ── HAMBURGER (permanent sidebar toggle) ─────────────────────────────────────
 (function () {
+  const app     = document.getElementById('app');
   const btn     = document.getElementById('hamburger');
   const sidebar = document.getElementById('sidebar');
   const overlay = document.getElementById('sidebar-overlay');
-  if (!btn || !sidebar) return;
+  if (!app || !btn || !sidebar) return;
+
+  const desktop = () => window.matchMedia('(min-width: 901px)').matches;
+
+  function setCollapsed(collapsed) {
+    app.classList.toggle('sidebar-collapsed', collapsed);
+    try { localStorage.setItem('sidebar-collapsed', collapsed ? '1' : '0'); } catch (e) {}
+  }
 
   btn.addEventListener('click', () => {
-    sidebar.classList.toggle('open');
-    overlay && overlay.classList.toggle('open');
+    if (!desktop()) {
+      sidebar.classList.toggle('open');
+      overlay && overlay.classList.toggle('open');
+      return;
+    }
+    setCollapsed(!app.classList.contains('sidebar-collapsed'));
   });
 
   overlay && overlay.addEventListener('click', () => {
     sidebar.classList.remove('open');
     overlay.classList.remove('open');
   });
+
+  window.addEventListener('resize', () => {
+    if (!desktop() && app.classList.contains('sidebar-collapsed')) setCollapsed(false);
+  });
+
+  let initial = false;
+  try { initial = localStorage.getItem('sidebar-collapsed') === '1'; } catch (e) {}
+  if (initial && desktop()) setCollapsed(true);
 })();
 
 // ── TAG ROW WRAP MARGIN ───────────────────────────────────────────────────────
@@ -177,4 +208,22 @@
     const panel = document.getElementById('method-list');
     panel.scrollTop = activeMethod.offsetTop - panel.clientHeight / 2;
   }
+})();
+
+// ── INHERITED METHODS TOGGLE ─────────────────────────────────────────────────
+(function () {
+  const btns = document.querySelectorAll('.inh-toggle');
+  if (!btns.length) return;
+
+  function setHidden(hidden) {
+    document.body.classList.toggle('hide-inherited', hidden);
+    btns.forEach(b => b.setAttribute('aria-pressed', !hidden));
+    try { localStorage.setItem('hide-inherited', hidden ? '1' : '0'); } catch (e) {}
+  }
+
+  btns.forEach(b => b.addEventListener('click', () => setHidden(!document.body.classList.contains('hide-inherited'))));
+
+  let initial = false;
+  try { initial = localStorage.getItem('hide-inherited') === '1'; } catch (e) {}
+  if (initial) setHidden(true);
 })();
