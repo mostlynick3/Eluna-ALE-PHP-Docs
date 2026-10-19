@@ -10,7 +10,18 @@ function namespace_to_class(string $namespace): string {
 function parse_headers(string $dir): array {
     $classes = [];
 
-    foreach (glob($dir . '/*.h') as $file) {
+    $files = [];
+    $iterator = new RecursiveIteratorIterator(
+        new RecursiveDirectoryIterator($dir, FilesystemIterator::SKIP_DOTS)
+    );
+    foreach ($iterator as $fileInfo) {
+        if ($fileInfo->isFile() && strtolower($fileInfo->getExtension()) === 'h') {
+            $files[] = $fileInfo->getPathname();
+        }
+    }
+    sort($files);
+
+    foreach ($files as $file) {
         $content = file_get_contents($file);
 
         if (!preg_match_all('/namespace\s+(Lua\w+)\s*\{/', $content, $nsAll, PREG_OFFSET_CAPTURE))

@@ -6,69 +6,59 @@ define('SOURCE_DIR',   __DIR__ . '/source');
 $sources = [
     'mod-ale' => [
         'url'         => 'https://github.com/azerothcore/mod-ale/archive/refs/heads/master.zip',
+        'dest'        => 'source/mod-ale',
         'title'       => 'mod-ale API',
         'headers_dir' => 'source/mod-ale/src/LuaEngine/methods',
     ],
     'ElunaTrinityCore' => [
         'url'         => 'https://github.com/ElunaLuaEngine/Eluna/archive/refs/heads/master.zip',
+        'dest'        => 'source/Eluna',
         'title'       => 'Eluna TrinityCore API',
         'headers_dir' => 'source/Eluna/methods/TrinityCore',
     ],
     'ElunaCMangos' => [
         'url'         => 'https://github.com/ElunaLuaEngine/Eluna/archive/refs/heads/master.zip',
+        'dest'        => 'source/Eluna',
         'title'       => 'Eluna CMaNGOS API',
         'headers_dir' => 'source/Eluna/methods/CMangos',
     ],
     'ElunaMangos' => [
         'url'         => 'https://github.com/ElunaLuaEngine/Eluna/archive/refs/heads/master.zip',
+        'dest'        => 'source/Eluna',
         'title'       => 'Eluna MaNGOS API',
         'headers_dir' => 'source/Eluna/methods/Mangos',
     ],
     'ElunaVMangos' => [
         'url'         => 'https://github.com/ElunaLuaEngine/Eluna/archive/refs/heads/master.zip',
+        'dest'        => 'source/Eluna',
         'title'       => 'Eluna VMaNGOS API',
         'headers_dir' => 'source/Eluna/methods/VMangos',
     ],
 ];
 
+if (in_array('--list-sources', $argv ?? [], true)) {
+    $seen = [];
+    foreach ($sources as $source) {
+        if (isset($seen[$source['dest']])) continue;
+        $seen[$source['dest']] = true;
+        echo $source['dest'] . "\t" . $source['url'] . "\n";
+    }
+    exit;
+}
+
 $repo       = getenv('GITHUB_REPOSITORY') ?: '';
 $repoName   = $repo ? explode('/', $repo)[1] : '';
 $branchName = getenv('BRANCH_NAME') ?: '';
 $isIndex    = $branchName === '__index__';
-
-define('BASE_PATH', '/' . $repoName . ($isIndex ? '' : '/' . $branchName));
+$buildAll   = getenv('BUILD_ALL') === '1';
 
 $distDir = __DIR__ . '/dist';
 @mkdir($distDir, 0777, true);
-@mkdir($distDir . '/assets', 0777, true);
-
-if ($isIndex) {
-    build_index_page($repoName, $distDir, $sources);
-    exit;
-}
-
-if (!isset($sources[$branchName])) {
-    echo "No source mapping for: {$branchName}\n";
-    exit(1);
-}
 
 require_once __DIR__ . '/parse.php';
 require_once __DIR__ . '/render.php';
 
-$config = [
-    'headers_dir' => __DIR__ . '/' . $sources[$branchName]['headers_dir'],
-    'site_title'  => $sources[$branchName]['title'],
-    'setConf'     => 1,
-    'refetch'     => ['enabled' => false, 'interval_unit' => 'days', 'interval_value' => 1, 'last_fetched' => 0, 'zip_url' => '', 'dest_key' => ''],
-];
-
-$classes     = parse_headers($config['headers_dir']);
-$tree        = build_tree($classes);
-$searchIndex = build_search_index($classes);
-$title       = $config['site_title'];
-
-function rewrite_links(string $html): string {
-    $base = BASE_PATH;
+function rewrite_links(string $html, string $base): string {
     $html = preg_replace_callback('/href="(\?class=([^&"]+)&amp;method=([^"]+))"/', function ($m) use ($base) {
         return 'href="' . $base . '/' . urldecode($m[2]) . '/' . urldecode($m[3]) . '/"';
     }, $html);
@@ -79,10 +69,9 @@ function rewrite_links(string $html): string {
     return $html;
 }
 
-function render_full_page(string $title, string $selectedClass, string $selectedMethod, array $classes, array $tree, array $searchIndex, array $config): string {
+function render_full_page(string $title, string $selectedClass, string $selectedMethod, array $classes, array $tree, array $searchIndex, array $config, string $base): string {
     $currentClass = $classes[$selectedClass] ?? null;
     $allMethods   = $currentClass ? get_all_methods($selectedClass, $classes) : [];
-    $base         = BASE_PATH;
     $baseJson     = json_encode($base);
     $searchJson   = json_encode($searchIndex, JSON_UNESCAPED_UNICODE);
 
@@ -209,7 +198,7 @@ function render_full_page(string $title, string $selectedClass, string $selected
 </html>
 HTML;
 
-    return rewrite_links($html);
+    return rewrite_links($html, $base);
 }
 
 function write_page(string $path, string $html): void {
@@ -217,31 +206,67 @@ function write_page(string $path, string $html): void {
     file_put_contents($path, $html);
 }
 
-write_page(
-    $distDir . '/index.html',
-    render_full_page($title, '', '', $classes, $tree, $searchIndex, $config)
-);
+function build_source(string $key, array $source, string $outDir, string $basePath): void {
+    $config = [
+        'headers_dir' => __DIR__ . '/' . $source['headers_dir'],
+        'site_title'  => $source['title'],
+        'setConf'     => 1,
+        'refetch'     => ['enabled' => false, 'interval_unit' => 'days', 'interval_value' => 1, 'last_fetched' => 0, 'zip_url' => '', 'dest_key' => ''],
+    ];
 
-foreach ($classes as $className => $cls) {
-    $allMethods = get_all_methods($className, $classes);
+    $classes     = parse_headers($config['headers_dir']);
+    $tree        = build_tree($classes);
+    $searchIndex = build_search_index($classes);
+    $title       = $config['site_title'];
+
+    @mkdir($outDir . '/assets', 0777, true);
 
     write_page(
-        $distDir . '/' . $className . '/index.html',
-        render_full_page($title, $className, '', $classes, $tree, $searchIndex, $config)
+        $outDir . '/index.html',
+        render_full_page($title, '', '', $classes, $tree, $searchIndex, $config, $basePath)
     );
 
-    foreach ($allMethods as $methodName => $method) {
+    foreach ($classes as $className => $cls) {
+        $allMethods = get_all_methods($className, $classes);
+
         write_page(
-            $distDir . '/' . $className . '/' . $methodName . '/index.html',
-            render_full_page($title, $className, $methodName, $classes, $tree, $searchIndex, $config)
+            $outDir . '/' . $className . '/index.html',
+            render_full_page($title, $className, '', $classes, $tree, $searchIndex, $config, $basePath)
         );
+
+        foreach ($allMethods as $methodName => $method) {
+            write_page(
+                $outDir . '/' . $className . '/' . $methodName . '/index.html',
+                render_full_page($title, $className, $methodName, $classes, $tree, $searchIndex, $config, $basePath)
+            );
+        }
     }
+
+    copy(__DIR__ . '/assets/style.css', $outDir . '/assets/style.css');
+    copy(__DIR__ . '/assets/app.js',    $outDir . '/assets/app.js');
+
+    echo 'Done. ' . $key . ': ' . count($classes) . " classes written to {$outDir}\n";
 }
 
-copy(__DIR__ . '/assets/style.css', $distDir . '/assets/style.css');
-copy(__DIR__ . '/assets/app.js',    $distDir . '/assets/app.js');
+if ($isIndex) {
+    build_index_page($repoName, $distDir, $sources);
+    exit;
+}
 
-echo 'Done. ' . count($classes) . " classes written to dist/\n";
+if ($buildAll) {
+    foreach ($sources as $key => $source) {
+        build_source($key, $source, $distDir . '/' . $key, '/' . $repoName . '/' . $key);
+    }
+    build_index_page($repoName, $distDir, $sources);
+    exit;
+}
+
+if (!isset($sources[$branchName])) {
+    echo "No source mapping for: {$branchName}\n";
+    exit(1);
+}
+
+build_source($branchName, $sources[$branchName], $distDir, '/' . $repoName . '/' . $branchName);
 
 function build_index_page(string $repoName, string $distDir, array $sources): void {
     if (count($sources) === 1) {
