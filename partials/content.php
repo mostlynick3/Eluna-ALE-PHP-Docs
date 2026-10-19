@@ -10,29 +10,34 @@ require_once __DIR__ . '/../render.php';
   <?php if ($selectedMethod && isset($allMethods[$selectedMethod])): ?>
 
     <?php $m = $allMethods[$selectedMethod]; ?>
-    <div class="breadcrumb">
+    <div class="breadcrumb breadcrumb-title">
       <a href="?class=<?= urlencode($selectedClass) ?>"><?= htmlspecialchars($selectedClass) ?></a>
-      &rsaquo; <?= htmlspecialchars($selectedMethod) ?>
+      <span class="crumb-sep">&rsaquo;</span><span><?= htmlspecialchars($selectedMethod) ?></span>
     </div>
-    <?= render_method_card($selectedMethod, $m, false, $selectedClass, $classes) ?>
+    <div id="current-method">
+      <?= render_method_card($selectedMethod, $m, false, $selectedClass, $classes) ?>
+    </div>
 
   <?php elseif ($currentClass): ?>
 
     <h1><?= htmlspecialchars($selectedClass) ?></h1>
 
+    <?php
+      $ownCount = count($classes[$selectedClass]['methods']);
+      $inhCount = count($allMethods) - $ownCount;
+    ?>
     <?php if (!empty($currentClass['inherits'])): ?>
       <div class="inh-chain">
         <span class="inh-chain-label">Inherits:</span>
         <?php foreach ($currentClass['inherits'] as $par): ?>
           <a class="inh-link" href="?class=<?= urlencode($par) ?>"><?= htmlspecialchars($par) ?></a>
         <?php endforeach; ?>
+        <?php if ($inhCount > 0): ?>
+          <button class="inh-toggle" aria-pressed="true" title="Toggle inherited methods">Show inherited</button>
+        <?php endif; ?>
       </div>
     <?php endif; ?>
 
-    <?php
-      $ownCount = count($classes[$selectedClass]['methods']);
-      $inhCount = count($allMethods) - $ownCount;
-    ?>
     <div class="method-count-bar">
       <div class="mcb-item"><span class="mcb-dot-own"></span> <?= $ownCount ?> own methods</div>
       <?php if ($inhCount > 0): ?>

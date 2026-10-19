@@ -14,11 +14,6 @@ $sources = [
         'title'       => 'Eluna TrinityCore API',
         'headers_dir' => 'source/Eluna/methods/TrinityCore',
     ],
-    'ElunaAzerothCore' => [
-        'url'         => 'https://github.com/ElunaLuaEngine/Eluna/archive/refs/heads/master.zip',
-        'title'       => 'Eluna AzerothCore API',
-        'headers_dir' => 'source/Eluna/methods/AzerothCore',
-    ],
     'ElunaCMangos' => [
         'url'         => 'https://github.com/ElunaLuaEngine/Eluna/archive/refs/heads/master.zip',
         'title'       => 'Eluna CMaNGOS API',
@@ -103,13 +98,22 @@ function render_full_page(string $title, string $selectedClass, string $selected
     include __DIR__ . '/partials/content.php';
     $content = ob_get_clean();
 
+    if ($selectedMethod !== '' && $selectedClass !== '') {
+        $pageTitle = $selectedClass . ':' . $selectedMethod . ' - ' . $title;
+    } elseif ($selectedClass !== '') {
+        $pageTitle = $selectedClass . ' - ' . $title;
+    } else {
+        $pageTitle = $title;
+    }
+    $pageTitle = htmlspecialchars($pageTitle);
+
     $html = <<<HTML
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{$title}</title>
+  <title>{$pageTitle}</title>
   <link rel="stylesheet" href="{$base}/assets/style.css">
 </head>
 <body>
@@ -163,15 +167,31 @@ function render_full_page(string $title, string $selectedClass, string $selected
         const url = h.type === 'class'
           ? base + '/' + encodeURIComponent(h.name) + '/'
           : base + '/' + encodeURIComponent(h.class) + '/' + encodeURIComponent(h.name) + '/';
-        const sub = h.type === 'method' ? '<span class="sr-class">' + h.class + '.</span>' : '';
+        const sub = h.type === 'method' ? '<span class="sr-class">' + escHtml(h.class) + '.</span>' : '';
         return '<div class="sr-item" onclick="location.href=\'' + url + '\'">'
           + '<span class="sr-badge ' + h.type + '">' + h.type + '</span>'
-          + sub + '<span class="sr-name">' + h.name + '</span>'
-          + '<span class="sr-desc">' + (h.desc || '') + '</span>'
+          + sub + '<span class="sr-name">' + escHtml(h.name) + '</span>'
+          + '<span class="sr-desc">' + fmtSearch(h.desc || '') + '</span>'
           + '</div>';
       }).join('');
       srBox.classList.add('open');
     });
+    function escHtml(s) {
+      return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+    function fmtSearch(s) {
+      let h = escHtml(s);
+      h = h.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+      h = h.replace(/`([^`]+)`/g, '<code class="inline-code">$1</code>');
+      h = h.replace(/\[(\w+):(\w+)\]/g, function(m, c, mn) {
+        return '<a class="doc-link" href="?class=' + encodeURIComponent(c) + '&method=' + encodeURIComponent(mn) + '">' + c + ':' + mn + '</a>';
+      });
+      h = h.replace(/\[(\w+)\]/g, function(m, c) {
+        return '<a class="doc-link" href="?class=' + encodeURIComponent(c) + '">' + c + '</a>';
+      });
+      return h;
+    }
     document.addEventListener('click', function(e) {
       if (!srInput.contains(e.target) && !srBox.contains(e.target)) {
         srBox.classList.remove('open');
@@ -224,6 +244,29 @@ copy(__DIR__ . '/assets/app.js',    $distDir . '/assets/app.js');
 echo 'Done. ' . count($classes) . " classes written to dist/\n";
 
 function build_index_page(string $repoName, string $distDir, array $sources): void {
+    if (count($sources) === 1) {
+        $key = array_key_first($sources);
+        $url = '/' . $repoName . '/' . $key . '/';
+        $href = htmlspecialchars($url, ENT_QUOTES);
+        $html = <<<HTML
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="refresh" content="0; url={$href}">
+  <title>Eluna / ALE API</title>
+</head>
+<body>
+  <a href="{$href}">{$href}</a>
+</body>
+</html>
+HTML;
+
+        file_put_contents($distDir . '/index.html', $html);
+        echo "Done. Single-source index redirects to {$url}\n";
+        return;
+    }
+
     $cards = '';
     foreach (array_keys($sources) as $key) {
         $url   = '/' . $repoName . '/' . htmlspecialchars($key) . '/';

@@ -1,22 +1,32 @@
 <?php
+function namespace_to_class(string $namespace): string {
+    $aliases = [
+        'LuaGlobalFunctions' => 'GlobalMethods',
+        'LuaGlobalBot'       => 'PlayerBot',
+    ];
+    return $aliases[$namespace] ?? preg_replace('/^Lua/', '', $namespace);
+}
+
 function parse_headers(string $dir): array {
     $classes = [];
 
     foreach (glob($dir . '/*.h') as $file) {
         $content = file_get_contents($file);
 
-        if (!preg_match('/namespace\s+(Lua\w+)\s*\{/', $content, $nsMatch))
+        if (!preg_match_all('/namespace\s+(Lua\w+)\s*\{/', $content, $nsAll, PREG_OFFSET_CAPTURE))
             continue;
 
-        $namespace = $nsMatch[1];
-        $className = preg_replace('/^Lua/', '', $namespace);
-        $className = $className === 'GlobalFunctions' ? 'GlobalMethods' : $className;
+        $nsCount = count($nsAll[1]);
+        for ($ni = 0; $ni < $nsCount; $ni++) {
+        $namespace = $nsAll[1][$ni][0];
+        $nsPos     = $nsAll[0][$ni][1];
+        $className = namespace_to_class($namespace);
 
         $classDesc = '';
         $inherits  = [];
 
-        $nsPos  = strpos($content, 'namespace ' . $namespace);
-        $before = substr($content, 0, $nsPos);
+        $prevEnd = $ni > 0 ? ($nsAll[0][$ni - 1][1] + strlen($nsAll[0][$ni - 1][0])) : 0;
+        $before  = substr($content, $prevEnd, $nsPos - $prevEnd);
 
         if (preg_match_all('/\/\*\*\s*(.*?)\s*\*\//s', $before, $classDocMatches)) {
             $raw     = end($classDocMatches[1]);
@@ -38,12 +48,13 @@ function parse_headers(string $dir): array {
             }
         }
 
-        $nsStart = strpos($content, '{', strpos($content, 'namespace ' . $namespace));
+        $nsStart = strpos($content, '{', $nsPos);
         if ($nsStart === false) continue;
-        $body = substr($content, $nsStart + 1);
+        $nsEnd = ($ni + 1 < $nsCount) ? $nsAll[0][$ni + 1][1] : strlen($content);
+        $body  = substr($content, $nsStart + 1, $nsEnd - $nsStart - 1);
 
         $methods = [];
-        $pattern = '/\/\*\*\s*(.*?)\s*\*\/\s*int\s+(\w+)\s*\((?:lua_State\*|Eluna\*)/s';
+        $pattern = '/\/\*\*\s*(.*?)\s*\*\/\s*(?:inline\s+|static\s+)*int\s+(\w+)\s*\((?:lua_State\*|Eluna\*)/s';
         preg_match_all($pattern, $body, $methodMatches, PREG_SET_ORDER);
 
         foreach ($methodMatches as $m) {
@@ -172,15 +183,26 @@ function parse_headers(string $dir): array {
             ];
         }
 
-        $classes[$className] = [
-            'name'     => $className,
-            'desc'     => $classDesc,
-            'inherits' => $inherits,
-            'methods'  => $methods,
-            'file'     => basename($file),
-        ];
+        if (empty($methods))
+            continue;
+        if (!isset($classes[$className])) {
+            $classes[$className] = [
+                'name'     => $className,
+                'desc'     => $classDesc,
+                'inherits' => $inherits,
+                'methods'  => $methods,
+                'file'     => basename($file),
+            ];
+        } else {
+            $classes[$className]['methods'] = array_merge($classes[$className]['methods'], $methods);
+            if ($classes[$className]['desc'] === '' && $classDesc !== '')
+                $classes[$className]['desc'] = $classDesc;
+            if (empty($classes[$className]['inherits']) && !empty($inherits))
+                $classes[$className]['inherits'] = $inherits;
+        }
+        }
     }
-    
+
     $classes = array_filter($classes, fn($c) => !empty($c['methods']));
     ksort($classes);
     return $classes;
@@ -298,20 +320,26 @@ function build_tree(array $classes): array {
     return ['children' => $children, 'roots' => $roots];
 }
 
+function search_excerpt(string $desc): string {
+    $desc = preg_replace('/\[\[CODE\]\].*?\[\[\/CODE\]\]/s', ' ', $desc);
+    $desc = preg_replace('/\s+/', ' ', strip_tags($desc));
+    return mb_substr(trim($desc), 0, 300);
+}
+
 function build_search_index(array $classes): array {
     $index = [];
     foreach ($classes as $cls) {
         $index[] = [
             'type' => 'class',
             'name' => $cls['name'],
-            'desc' => mb_substr(strip_tags($cls['desc']), 0, 80),
+            'desc' => search_excerpt($cls['desc']),
         ];
         foreach ($cls['methods'] as $m) {
             $index[] = [
                 'type'  => 'method',
                 'class' => $cls['name'],
                 'name'  => $m['name'],
-                'desc'  => mb_substr(strip_tags($m['desc']), 0, 80),
+                'desc'  => search_excerpt($m['desc']),
             ];
         }
     }
