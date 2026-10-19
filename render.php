@@ -219,7 +219,7 @@ function render_synopsis(string $mn, array $m, string $selectedClass): string {
 
 function render_method_card(string $mn, array $m, bool $linkName = false, string $selectedClass = '', array $classes = []): string {
     $isInh = isset($m['inherited_from']);
-    $html  = '<div class="method-card" id="mc-' . htmlspecialchars($mn) . '">';
+    $html  = '<div class="method-card' . ($isInh ? ' inherited' : '') . '" id="mc-' . htmlspecialchars($mn) . '">';
 
     $nameHtml = $linkName
         ? '<a href="?class=' . urlencode($selectedClass) . '&method=' . urlencode($mn) . '" style="color:inherit;text-decoration:none">' . htmlspecialchars($mn) . '</a>'

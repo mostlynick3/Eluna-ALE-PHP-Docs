@@ -69,13 +69,21 @@ $currentClass = $classes[$selectedClass] ?? null;
 $allMethods   = $currentClass ? get_all_methods($selectedClass, $classes) : [];
 
 $title = $config['site_title'];
+
+if ($selectedMethod !== '' && $selectedClass !== '') {
+    $pageTitle = $selectedClass . ':' . $selectedMethod . ' - ' . $title;
+} elseif ($selectedClass !== '') {
+    $pageTitle = $selectedClass . ' - ' . $title;
+} else {
+    $pageTitle = $title;
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title><?= htmlspecialchars($title) ?></title>
+  <title><?= htmlspecialchars($pageTitle) ?></title>
   <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>

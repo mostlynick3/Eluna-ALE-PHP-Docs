@@ -8,6 +8,9 @@ on:
     branches:
       - main
 
+permissions:
+  contents: write
+
 jobs:
   build-branch:
     runs-on: ubuntu-latest
@@ -19,9 +22,6 @@ jobs:
             url: https://github.com/azerothcore/mod-ale/archive/refs/heads/master.zip
             dest: source/mod-ale
           - key: ElunaTrinityCore
-            url: https://github.com/ElunaLuaEngine/Eluna/archive/refs/heads/master.zip
-            dest: source/Eluna
-          - key: ElunaAzerothCore
             url: https://github.com/ElunaLuaEngine/Eluna/archive/refs/heads/master.zip
             dest: source/Eluna
           - key: ElunaCMangos

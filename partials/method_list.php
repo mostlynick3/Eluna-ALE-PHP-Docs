@@ -5,10 +5,19 @@
 /** @var array  $currentClass */
 /** @var array  $classes */
 ?>
+<div id="method-header">
+  <?= $currentClass ? htmlspecialchars($selectedClass) . ' Methods' : 'All Methods' ?>
+</div>
+<?php
+  $inhCount = 0;
+  if ($currentClass) {
+      $inhCount = count($allMethods) - count($classes[$selectedClass]['methods']);
+  }
+?>
+<?php if ($currentClass && $inhCount > 0): ?>
+  <button class="inh-toggle inh-switch" aria-pressed="true" title="Toggle inherited methods">Show inherited</button>
+<?php endif; ?>
 <nav id="method-list">
-  <div id="method-header">
-    <?= $currentClass ? htmlspecialchars($selectedClass) . ' Methods' : 'All Methods' ?>
-  </div>
 
   <?php if ($currentClass): ?>
     <?php foreach ($allMethods as $mn => $m): ?>
