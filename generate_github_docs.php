@@ -59,14 +59,23 @@ require_once __DIR__ . '/parse.php';
 require_once __DIR__ . '/render.php';
 
 function rewrite_links(string $html, string $base): string {
-    $html = preg_replace_callback('/href="(\?class=([^&"]+)&amp;method=([^"]+))"/', function ($m) use ($base) {
-        return 'href="' . $base . '/' . urldecode($m[2]) . '/' . urldecode($m[3]) . '/"';
-    }, $html);
-    $html = preg_replace_callback('/href="(\?class=([^"&]+))"/', function ($m) use ($base) {
-        return 'href="' . $base . '/' . urldecode($m[2]) . '/"';
-    }, $html);
-    $html = preg_replace('/href="\?"/', 'href="' . $base . '/"', $html);
-    return $html;
+    $parts = preg_split('/(<script\b[^>]*>.*?<\/script>)/is', $html, -1, PREG_SPLIT_DELIM_CAPTURE);
+    if ($parts === false) {
+        return $html;
+    }
+    foreach ($parts as $i => $part) {
+        if ($i % 2 === 1) {
+            continue;
+        }
+        $part = preg_replace_callback('/href="(\?class=([^&"]+)&amp;method=([^"]+))"/', function ($m) use ($base) {
+            return 'href="' . $base . '/' . urldecode($m[2]) . '/' . urldecode($m[3]) . '/"';
+        }, $part);
+        $part = preg_replace_callback('/href="(\?class=([^"&]+))"/', function ($m) use ($base) {
+            return 'href="' . $base . '/' . urldecode($m[2]) . '/"';
+        }, $part);
+        $parts[$i] = preg_replace('/href="\?"/', 'href="' . $base . '/"', $part);
+    }
+    return implode('', $parts);
 }
 
 function render_full_page(string $title, string $selectedClass, string $selectedMethod, array $classes, array $tree, array $searchIndex, array $config, string $base): string {
@@ -128,6 +137,13 @@ function render_full_page(string $title, string $selectedClass, string $selected
         return base + '/' + decodeURIComponent(c) + '/';
       })
       .replace(/^\?$/, base + '/');
+  }
+  if (location.search) {
+    const target = rewrite(location.search);
+    if (target !== location.search) {
+      location.replace(target);
+      return;
+    }
   }
   document.addEventListener('click', function(e) {
     const a = e.target.closest('a');
